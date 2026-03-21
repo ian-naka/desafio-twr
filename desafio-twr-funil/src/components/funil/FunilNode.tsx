@@ -21,7 +21,7 @@ export type FunnelNodeData = {
     conversions: number;
 };
 
-//adicionamos a propriedade 'selected' que o react flow envia automaticamente
+
 export default function FunilNode({ id, data, selected }: { id: string; data: FunnelNodeData; selected?: boolean }) {
     //hook do react flow para manipular o estado global do mapa de dentro do nó
     const { setNodes } = useReactFlow();
@@ -94,8 +94,8 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
 
                 {/* o corpo do cartão com a lógica visual de seleção */}
                 <Card className={`bg-card transition-all duration-200 ${selected
-                        ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background shadow-xl'
-                        : 'border-border shadow-lg'
+                    ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background shadow-xl'
+                    : 'border-border shadow-lg'
                     }`}>
                     <CardHeader className="p-4 pb-3 border-b bg-muted/30">
                         <CardTitle className="text-sm font-bold text-foreground pr-6">{data.title}</CardTitle>
