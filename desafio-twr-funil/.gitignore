@@ -28,3 +28,5 @@ um.txt
 .env
 coverage/
 package-lock.json
+
+.vite/

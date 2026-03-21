@@ -9,6 +9,7 @@ import {
     useNodesState,
     useEdgesState,
     addEdge,
+    Panel, //importação para painéis flutuantes
     type Connection,
     type Edge,
     BackgroundVariant,
@@ -19,6 +20,10 @@ import '@xyflow/react/dist/style.css';
 
 //importação do nosso cartão customizado do funil
 import FunilNode from './FunilNode';
+
+//importações da ui do shadcn e ícones para o botão
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 //dicionário que mapeia os componentes customizados para o react flow
 const nodeTypes = {
@@ -55,7 +60,7 @@ const EdgeIniciais: Edge[] = [
     { id: 'e1-2', source: 'node-1', target: 'node-2', animated: true }
 ];
 
-export default function FunnelCanvas() {
+export default function FunilGrid() {
     const [nodes, setNodes, onNodesChange] = useNodesState(NodesIniciais);
     const [edges, setEdges, onEdgesChange] = useEdgesState(EdgeIniciais);
 
@@ -64,6 +69,30 @@ export default function FunnelCanvas() {
         (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
         [setEdges]
     );
+
+    //funcao disparada ao clicar no botao de nova etapa
+    const handleAddNode = useCallback(() => {
+        //cria um id único baseado no milissegundo atual
+        const newNodeId = `node-${Date.now()}`;
+
+        //sorteia uma posição levemente aleatória para os cartões não caírem exatamente um em cima do outro
+        const randomX = Math.random() * 100 + 100;
+        const randomY = Math.random() * 100 + 100;
+
+        const newNode = {
+            id: newNodeId,
+            position: { x: randomX, y: randomY },
+            type: 'funilCard', //tem que ser o mesmo nome mapeado no dicionário
+            data: {
+                title: 'Nova Etapa',
+                views: 0,
+                conversions: 0,
+            },
+        };
+
+        //atualiza o estado injetando o novo nó no final da lista
+        setNodes((nds) => [...nds, newNode]);
+    }, [setNodes]);
 
     //renderizacao na tela
     return (
@@ -79,6 +108,14 @@ export default function FunnelCanvas() {
                 nodeTypes={nodeTypes} //injetando o dicionário de componentes customizados
                 fitView //zoom inicial
             >
+                {/*barra de ferramentas flutuante do react flow ancorada no topo direito*/}
+                <Panel position="top-right" className="bg-background/80 backdrop-blur-sm p-4 rounded-xl border border-border shadow-sm m-4">
+                    <Button onClick={handleAddNode} className="flex items-center gap-2 cursor-pointer">
+                        <Plus className="w-4 h-4" />
+                        Nova Etapa
+                    </Button>
+                </Panel>
+
                 {/*espaçamento de 24 pixels e raio de 2 pixels; cores herdadas do tailwind */}
                 <Background variant={BackgroundVariant.Dots} gap={24} size={2} className="text-muted-foreground/20" />
 
