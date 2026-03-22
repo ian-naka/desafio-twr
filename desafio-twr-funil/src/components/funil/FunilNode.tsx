@@ -47,11 +47,46 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
         window.addEventListener('openEditNode', handleOpenEdit);
         return () => window.removeEventListener('openEditNode', handleOpenEdit);
     }, [id]);
+    const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
+            e.preventDefault();
+        }
+    };
+    const handleViewsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        if (newValue.length <= 8) {
+            setEditViews(newValue);
+        }
+    };
+
+    const handleConversionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        if (newValue.length <= 8) {
+            setEditConversions(newValue);
+        }
+    };
 
     const handleSave = () => {
         const tituloLimpo = editTitle.trim();
         const acessosSeguros = Math.abs(Number(editViews)) || 0;
         const conversoesSeguras = Math.abs(Number(editConversions)) || 0;
+        const viewsNum = Number(editViews);
+        const conversionsNum = Number(editConversions);
+
+        if (viewsNum < 0 || conversionsNum < 0) {
+            toast.error("Os valores não podem ser negativos.");
+            return;
+        }
+
+        if (conversionsNum > viewsNum) {
+            toast.error("As conversões não podem ser maiores que os acessos!");
+            return;
+        }
+
+        if (viewsNum > 99999999) {
+            toast.error("O limite máximo de acessos é 99 milhões.");
+            return;
+        }
 
         setNodes((nds) =>
             nds.map((node) => {
@@ -157,11 +192,27 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="views" className="text-right">Acessos</Label>
-                        <Input id="views" type="number" value={editViews} onChange={(e) => setEditViews(e.target.value)} className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                        <Input
+                            id="views"
+                            type="number"
+                            min="0"
+                            value={editViews}
+                            onChange={handleViewsChange}
+                            onKeyDown={preventInvalidChars}
+                            className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="conversions" className="text-right">Conversões</Label>
-                        <Input id="conversions" type="number" value={editConversions} onChange={(e) => setEditConversions(e.target.value)} className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                        <Input
+                            id="conversions"
+                            type="number"
+                            min="0"
+                            value={editConversions}
+                            onChange={handleConversionsChange}
+                            onKeyDown={preventInvalidChars}
+                            className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
                     </div>
                 </div>
                 <DialogFooter className="flex flex-row items-center !justify-between sm:!justify-between sm:space-x-0 mt-6 -mx-6 -mb-6 px-6 pt-4 pb-6 bg-zinc-100 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-800 rounded-b-lg">

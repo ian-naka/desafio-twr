@@ -12,14 +12,15 @@ import {
     type Connection,
     type Edge,
     BackgroundVariant,
-    type ReactFlowInstance
+    type ReactFlowInstance,
+    MarkerType
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import FunilNode from './FunilNode';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-import { Plus, Menu, LayoutList, Target, X, Sun, Moon } from 'lucide-react';
+import { Activity, Plus, Menu, LayoutList, Target, X, Sun, Moon } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from '@/components/theme-provider';
 
@@ -57,21 +58,31 @@ const getInitialGridState = (): boolean => {
     return saved !== null ? JSON.parse(saved) : true;
 };
 
+const getInitialAnimateState = (): boolean => {
+    const saved = localStorage.getItem('twr-animate');
+    return saved !== null ? JSON.parse(saved) : true;
+};
+
+const MAP_LIMIT: [[number, number], [number, number]] = [
+    [-3500, -3500],
+    [3500, 3500]
+];
+
 export default function FunilGrid() {
     const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes());
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(getInitialEdges());
-
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showGrid, setShowGrid] = useState<boolean>(getInitialGridState());
     const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
-
+    const [animateFlow, setAnimateFlow] = useState<boolean>(getInitialAnimateState());
     const { theme, setTheme } = useTheme();
 
     useEffect(() => {
         localStorage.setItem('twr-nodes', JSON.stringify(nodes));
         localStorage.setItem('twr-edges', JSON.stringify(edges));
         localStorage.setItem('twr-showgrid', JSON.stringify(showGrid));
-    }, [nodes, edges, showGrid]);
+        localStorage.setItem('twr-animate', JSON.stringify(animateFlow));
+    }, [nodes, edges, showGrid, animateFlow]);
 
     const edgeReconnectSuccessful = useRef(true);
 
@@ -155,12 +166,19 @@ export default function FunilGrid() {
         );
     };
 
-    const styledEdges = edges.map(edge => ({
+    const styledEdges: Edge[] = edges.map(edge => ({
         ...edge,
+        animated: animateFlow,
+        markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: theme === 'dark' ? '#fafafa' : '#18181b',
+        },
         style: {
             ...edge.style,
             strokeWidth: 2,
-            stroke: theme === 'dark' ? '#d4d4d8' : '#27272a',
+            stroke: theme === 'dark' ? '#fafafa' : '#18181b',
         }
     }));
 
@@ -194,7 +212,21 @@ export default function FunilGrid() {
                     onInit={setRfInstance}
                     defaultEdgeOptions={{
                         interactionWidth: 20,
+                        animated: animateFlow,
+                        markerEnd: {
+                            type: MarkerType.ArrowClosed,
+                            width: 20,
+                            height: 20,
+                            color: theme === 'dark' ? '#fafafa' : '#18181b',
+                        },
+                        style: {
+                            strokeWidth: 2,
+                            stroke: theme === 'dark' ? '#fafafa' : '#18181b',
+                        }
                     }}
+                    translateExtent={MAP_LIMIT}
+                    nodeExtent={MAP_LIMIT}
+
                 >
                     {!isMenuOpen && (
                         <Panel position="top-right" className="m-4">
@@ -334,6 +366,20 @@ export default function FunilGrid() {
                                 <Switch
                                     checked={theme === 'dark'}
                                     onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                                    className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent"
+                                />
+                            </div>
+                            <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-zinc-200 dark:bg-zinc-800/40">
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-sm font-semibold flex items-center gap-2">
+                                        Animar Fluxo
+                                        <Activity className="w-3.5 h-3.5 text-primary" />
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground">Movimento nas conexões</span>
+                                </div>
+                                <Switch
+                                    checked={animateFlow}
+                                    onCheckedChange={setAnimateFlow}
                                     className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent"
                                 />
                             </div>
