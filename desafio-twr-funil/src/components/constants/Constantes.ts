@@ -22,8 +22,8 @@ export const categoryConfig: Record<string, { icon: ElementType, color: string, 
 
 //dados de demonstração pro primeiro acesso (localStorage está vazio)
 export const NodesIniciais = [
-    { id: 'node-1', position: { x: 100, y: 250 }, type: 'funilCard', data: { title: 'Anúncio no Instagram', views: 15400, conversions: 820 } },
-    { id: 'node-2', position: { x: 500, y: 250 }, type: 'funilCard', data: { title: 'Página de Vendas (LP)', views: 820, conversions: 105 } }
+    { id: 'node-1', position: { x: 100, y: 300 }, type: 'funilCard', data: { title: 'Anúncio', views: 0, conversions: 0, formatoNode: 'origem' as const, category: 'anuncio' } },
+    { id: 'node-2', position: { x: 400, y: 210 }, type: 'funilCard', data: { title: 'Página de Vendas (LP)', views: 820, conversions: 105, formatoNode: 'etapa' as const, category: 'landing-page' } }
 ];
 
 export const EdgeIniciais: Edge[] = [
