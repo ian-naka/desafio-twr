@@ -237,7 +237,6 @@
   animation: flowAnimation 1s linear infinite !important;
 }
 
-/* Remove a animação se estiver desligado no botão */
 .react-flow__edge:not(.animated) .react-flow__edge-path {
   stroke-dasharray: none !important;
   animation: none !important;

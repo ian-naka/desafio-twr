@@ -10,7 +10,6 @@ import {
     reconnectEdge,
     addEdge,
     Panel,
-    useReactFlow,
     type Connection,
     type Edge,
     type Node,
@@ -266,7 +265,7 @@ export default function FunilGrid() {
                                 variant="outline"
                                 size="icon"
                                 onClick={() => setIsMenuOpen(true)}
-                                className="h-12 w-12 bg-background/80 backdrop-blur-sm border-border shadow-sm transition-transform hover:scale-105"
+                                className="h-12 w-12 bg-background/80 backdrop-blur-sm border-zinc-300 dark:border-zinc-700 shadow-sm transition-transform hover:scale-105"
                             >
                                 <Menu className="w-6 h-6 text-foreground" />
                             </Button>
@@ -282,7 +281,7 @@ export default function FunilGrid() {
                         />
                     )}
 
-                    <Controls showFitView={false} className="bg-background border-border shadow-sm m-4 scale-[1.5] origin-bottom-left fill-foreground border-b-0 [&>button]:border-b [&>button]:border-border">
+                    <Controls showFitView={false} className="bg-background border-zinc-300 dark:border-zinc-700 shadow-sm m-4 scale-[1.5] origin-bottom-left fill-foreground border-b-0 [&>button]:border-b [&>button]:border-zinc-300 dark:[&>button]:border-zinc-700">
                         <ControlButton onClick={() => rfInstance?.fitView({ duration: 800, padding: 0.2 })} title="Centralizar Funil">
                             <Maximize className="w-3.5 h-3.5" />
                         </ControlButton>
