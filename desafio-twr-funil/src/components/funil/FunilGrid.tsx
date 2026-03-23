@@ -11,6 +11,7 @@ import {
     Panel,
     type Connection,
     type Edge,
+    type Node,
     BackgroundVariant,
     type ReactFlowInstance,
     MarkerType
@@ -77,12 +78,108 @@ export default function FunilGrid() {
     const [animateFlow, setAnimateFlow] = useState<boolean>(getInitialAnimateState());
     const { theme, setTheme } = useTheme();
 
+    const pastRef = useRef<{ nodes: Node[], edges: Edge[] }[]>([]);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isUndoing = useRef(false);
+    const isNodeDeletionRef = useRef(false)
+
+    useEffect(() => {
+        pastRef.current = [{ nodes: getInitialNodes(), edges: getInitialEdges() }];
+    }, []);
+
     useEffect(() => {
         localStorage.setItem('twr-nodes', JSON.stringify(nodes));
         localStorage.setItem('twr-edges', JSON.stringify(edges));
         localStorage.setItem('twr-showgrid', JSON.stringify(showGrid));
         localStorage.setItem('twr-animate', JSON.stringify(animateFlow));
     }, [nodes, edges, showGrid, animateFlow]);
+
+    useEffect(() => {
+        if (isUndoing.current) {
+            isUndoing.current = false;
+            return;
+        }
+
+        if (timerRef.current) clearTimeout(timerRef.current);
+
+        timerRef.current = setTimeout(() => {
+            const currentStateStr = JSON.stringify({ nodes, edges });
+            const lastState = pastRef.current[pastRef.current.length - 1];
+
+            if (!lastState || JSON.stringify(lastState) !== currentStateStr) {
+                pastRef.current.push({
+                    nodes: JSON.parse(JSON.stringify(nodes)),
+                    edges: JSON.parse(JSON.stringify(edges))
+                });
+                if (pastRef.current.length > 30) pastRef.current.shift();
+            }
+        }, 300);
+
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, [nodes, edges]);
+
+    const undo = useCallback(() => {
+        if (pastRef.current.length > 1) {
+            isUndoing.current = true;
+            pastRef.current.pop();
+            const previousState = pastRef.current[pastRef.current.length - 1];
+            setNodes(previousState.nodes);
+            setEdges(previousState.edges);
+            toast("Ação desfeita");
+        } else {
+            toast("Nada mais para desfazer");
+        }
+    }, [setNodes, setEdges]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+                if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+                    return;
+                }
+                e.preventDefault();
+                undo();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [undo]);
+
+    useEffect(() => {
+        const handleManualDelete = () => {
+            isNodeDeletionRef.current = true;
+            setTimeout(() => {
+                isNodeDeletionRef.current = false;
+            }, 100);
+        };
+        window.addEventListener('manualNodeDelete', handleManualDelete);
+        return () => window.removeEventListener('manualNodeDelete', handleManualDelete);
+    }, []);
+
+    const onBeforeDelete = useCallback(async ({ nodes }: { nodes: Node[], edges: Edge[] }) => {
+        if (nodes.length > 0) {
+            isNodeDeletionRef.current = true;
+        }
+        return true;
+    }, []);
+
+    const onNodesDelete = useCallback((deletedNodes: Node[]) => {
+        deletedNodes.forEach(node => {
+            toast(`Etapa "${node.data.title}" removida`);
+        });
+
+        setTimeout(() => {
+            isNodeDeletionRef.current = false;
+        }, 100);
+    }, []);
+
+    const onEdgesDelete = useCallback(() => {
+        if (isNodeDeletionRef.current) return;
+
+        toast("Conexão removida");
+    }, []);
 
     const edgeReconnectSuccessful = useRef(true);
 
@@ -91,12 +188,10 @@ export default function FunilGrid() {
             const edgeExists = edges.some(
                 (e) => e.source === params.source && e.target === params.target
             );
-
             if (edgeExists) {
                 toast.warning("Estas etapas já estão conectadas!");
                 return;
             }
-
             setEdges((eds) => addEdge(params, eds));
             toast.success("Etapas conectadas com sucesso!");
         },
@@ -122,7 +217,10 @@ export default function FunilGrid() {
         (_: any, edge: Edge) => {
             if (!edgeReconnectSuccessful.current) {
                 setEdges((eds) => eds.filter((e) => e.id !== edge.id));
-                toast.info("Conexão removida.");
+
+                if (!isNodeDeletionRef.current) {
+                    toast("Conexão removida");
+                }
             }
             edgeReconnectSuccessful.current = true;
         },
@@ -131,22 +229,14 @@ export default function FunilGrid() {
 
     const handleAddNode = useCallback(() => {
         const newNodeId = `node-${Date.now()}`;
-
         let position = { x: 100, y: 100 };
-
         if (rfInstance) {
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
-
-            position = rfInstance.screenToFlowPosition({
-                x: centerX,
-                y: centerY,
-            });
-
+            position = rfInstance.screenToFlowPosition({ x: centerX, y: centerY });
             position.x += (Math.random() - 0.5) * 60;
             position.y += (Math.random() - 0.5) * 60;
         }
-
         const newNode = {
             id: newNodeId,
             position,
@@ -186,13 +276,8 @@ export default function FunilGrid() {
         <div className="relative flex w-screen h-screen overflow-hidden bg-background">
             <style dangerouslySetInnerHTML={{
                 __html: `
-                .no-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .no-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}} />
 
             <div className={`relative flex-1 h-full transition-all duration-300 ease-in-out bg-zinc-200 dark:bg-background overflow-hidden ${isMenuOpen ? 'sm:mr-[350px]' : 'mr-0'}`}>
@@ -205,28 +290,16 @@ export default function FunilGrid() {
                     onReconnect={onReconnect}
                     onReconnectStart={onReconnectStart}
                     onReconnectEnd={onReconnectEnd}
+                    onBeforeDelete={onBeforeDelete}
+                    onNodesDelete={onNodesDelete}
+                    onEdgesDelete={onEdgesDelete}
                     nodeTypes={nodeTypes}
                     onPaneClick={() => setIsMenuOpen(false)}
                     colorMode={theme === 'dark' ? 'dark' : 'light'}
                     fitView
                     onInit={setRfInstance}
-                    defaultEdgeOptions={{
-                        interactionWidth: 20,
-                        animated: animateFlow,
-                        markerEnd: {
-                            type: MarkerType.ArrowClosed,
-                            width: 20,
-                            height: 20,
-                            color: theme === 'dark' ? '#fafafa' : '#18181b',
-                        },
-                        style: {
-                            strokeWidth: 2,
-                            stroke: theme === 'dark' ? '#fafafa' : '#18181b',
-                        }
-                    }}
                     translateExtent={MAP_LIMIT}
                     nodeExtent={MAP_LIMIT}
-
                 >
                     {!isMenuOpen && (
                         <Panel position="top-right" className="m-4">
@@ -242,12 +315,7 @@ export default function FunilGrid() {
                     )}
 
                     {showGrid && (
-                        <Background
-                            variant={BackgroundVariant.Dots}
-                            gap={24}
-                            size={2}
-                            color={theme === 'dark' ? '#3f3f46' : '#71717a'}
-                        />
+                        <Background variant={BackgroundVariant.Dots} gap={24} size={2} color={theme === 'dark' ? '#3f3f46' : '#71717a'} />
                     )}
 
                     <Controls className="bg-background border-border shadow-sm m-4 scale-[1.2] origin-bottom-left fill-foreground" />
@@ -258,34 +326,23 @@ export default function FunilGrid() {
                         maskStrokeWidth={0}
                         nodeColor={theme === 'dark' ? '#f4f4f5' : '#3f3f46'}
                         nodeStrokeWidth={0}
-                        style={{
-                            backgroundColor: theme === 'dark' ? '#161618ff' : '#ffffff',
-                        }}
+                        style={{ backgroundColor: theme === 'dark' ? '#161618ff' : '#ffffff' }}
                     />
 
-                    <Panel
-                        position="bottom-right"
-                        className="z-50"
-                        style={{ marginRight: '84px', marginBottom: '180px' }}
-                    >
+                    <Panel position="bottom-right" className="z-50" style={{ marginRight: '84px', marginBottom: '180px' }}>
                         <Button
                             onClick={handleAddNode}
                             size="icon"
                             className="h-16 w-16 rounded-full bg-primary text-primary-foreground shadow-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer border-0"
-                            style={{
-                                backgroundColor: theme === 'dark' ? '#fafafae6' : '#18181be6',
-                            }}
+                            style={{ backgroundColor: theme === 'dark' ? '#fafafae6' : '#18181be6' }}
                         >
                             <Plus className="w-8 h-8" />
                         </Button>
                     </Panel>
-
                 </ReactFlow>
             </div>
 
-            <aside
-                className={`fixed top-0 right-0 h-full w-full sm:w-[350px] bg-zinc-50 dark:bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-in-out z-50 flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            >
+            <aside className={`fixed top-0 right-0 h-full w-full sm:w-[350px] bg-zinc-50 dark:bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-in-out z-50 flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-6 border-b border-border flex justify-between items-center bg-zinc-50 dark:bg-card">
                     <div className="flex items-center gap-2">
                         <Target className="w-5 h-5 text-primary" />
@@ -302,7 +359,6 @@ export default function FunilGrid() {
                             <LayoutList className="w-4 h-4" />
                             Etapas ({nodes.length})
                         </Label>
-
                         <div className="flex-1 overflow-y-auto no-scrollbar">
                             <div className="grid grid-cols-1 gap-2">
                                 {nodes.map((node) => {
@@ -311,26 +367,22 @@ export default function FunilGrid() {
                                         <div
                                             key={node.id}
                                             onClick={() => handleSelectFromSidebar(node.id)}
-                                            className={`p-3 rounded-md border flex items-center justify-between group hover:border-primary transition-colors cursor-pointer ${node.selected ? 'bg-primary/10 border-primary' : 'bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800/40 border-border'
-                                                }`}
+                                            className={`p-3 rounded-md border flex items-center justify-between group hover:border-primary transition-colors cursor-pointer ${node.selected ? 'bg-primary/10 border-primary' : 'bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800/40 border-border'}`}
                                         >
                                             <div className="flex flex-col truncate pr-2">
                                                 <span className="text-sm font-bold truncate">{nodeData.title}</span>
                                                 <span className="text-[10px] text-muted-foreground">ID: {node.id.split('-')[1] || 'init'}</span>
                                             </div>
-
-                                            <div className="flex items-center">
-                                                <Button
-                                                    variant="ghost"
-                                                    className="h-auto py-1 px-2 rounded text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/10 dark:hover:text-primary transition-colors"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        window.dispatchEvent(new CustomEvent('openEditNode', { detail: node.id }));
-                                                    }}
-                                                >
-                                                    Editar
-                                                </Button>
-                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                className="h-auto py-1 px-2 rounded text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/10 dark:hover:text-primary transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    window.dispatchEvent(new CustomEvent('openEditNode', { detail: node.id }));
+                                                }}
+                                            >
+                                                Editar
+                                            </Button>
                                         </div>
                                     );
                                 })}
@@ -339,49 +391,28 @@ export default function FunilGrid() {
                     </div>
 
                     <div className="pt-6 border-t border-border mt-auto mb-4 space-y-4">
-                        <Label className="text-xs uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2 mb-4">
-                            Configurações
-                        </Label>
+                        <Label className="text-xs uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2 mb-4">Configurações</Label>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-zinc-200 dark:bg-zinc-800/40">
                                 <div className="flex flex-col gap-0.5">
                                     <span className="text-sm font-semibold">Exibir Grid</span>
                                     <span className="text-[10px] text-muted-foreground">Mostrar pontilhado de fundo</span>
                                 </div>
-                                <Switch
-                                    checked={showGrid}
-                                    onCheckedChange={setShowGrid}
-                                    className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent"
-                                />
+                                <Switch checked={showGrid} onCheckedChange={setShowGrid} className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent" />
                             </div>
-
                             <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-zinc-200 dark:bg-zinc-800/40">
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-sm font-semibold flex items-center gap-2">
-                                        Tema Escuro
-                                        {theme === 'dark' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
-                                    </span>
+                                    <span className="text-sm font-semibold flex items-center gap-2">Tema Escuro {theme === 'dark' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}</span>
                                     <span className="text-[10px] text-muted-foreground">Alternar cores da interface</span>
                                 </div>
-                                <Switch
-                                    checked={theme === 'dark'}
-                                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-                                    className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent"
-                                />
+                                <Switch checked={theme === 'dark'} onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent" />
                             </div>
                             <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-zinc-200 dark:bg-zinc-800/40">
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-sm font-semibold flex items-center gap-2">
-                                        Animar Fluxo
-                                        <Activity className="w-3.5 h-3.5 text-primary" />
-                                    </span>
+                                    <span className="text-sm font-semibold flex items-center gap-2">Animar Fluxo <Activity className="w-3.5 h-3.5 text-primary" /></span>
                                     <span className="text-[10px] text-muted-foreground">Movimento nas conexões</span>
                                 </div>
-                                <Switch
-                                    checked={animateFlow}
-                                    onCheckedChange={setAnimateFlow}
-                                    className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent"
-                                />
+                                <Switch checked={animateFlow} onCheckedChange={setAnimateFlow} className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent" />
                             </div>
                         </div>
                     </div>
