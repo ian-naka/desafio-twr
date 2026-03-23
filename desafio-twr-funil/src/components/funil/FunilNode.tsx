@@ -9,12 +9,11 @@ import type { FunnelNodeData } from '../types/Interfaces';
 import { categoryConfig } from '../constants/Constantes';
 import NoEditar from './NoEditar';
 
+
 export default function FunilNode({ id, data, selected }: { id: string; data: FunnelNodeData; selected?: boolean }) {
+    const isOrigem = data.formatoNode === 'origem';
     const [isOpen, setIsOpen] = useState(false);
 
-    const conversionRate = data.views > 0 ? ((data.conversions / data.views) * 100).toFixed(1) : '0.0';
-
-    //escuta evento global disparado pelo botão "editar" da sidebar 
     useEffect(() => {
         const handleOpenEdit = (e: Event) => {
             const customEvent = e as CustomEvent;
@@ -28,6 +27,56 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
     const config = categoryConfig[currentCategory] || categoryConfig['default'];
     const Icon = config.icon;
 
+    if (isOrigem) {
+        const borderClass = config.color.replace('text-', 'border-');
+        const conversionRate = data.views > 0 ? ((data.conversions / data.views) * 100).toFixed(1) : '0.0';
+
+        return (
+            <>
+                <div
+                    className="flex flex-col items-center justify-center group cursor-pointer relative"
+                    style={{ backfaceVisibility: 'hidden' }}
+                    onDoubleClick={() => setIsOpen(true)}
+                >
+                    {/* Botão Editar (Aparece no Hover) */}
+                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10 -mr-2 -mt-2">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-sm border border-zinc-200 dark:border-zinc-700"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(true);
+                            }}
+                        >
+                            <Settings2 className="w-3 h-3 text-foreground" />
+                        </Button>
+                    </div>
+
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center border-[3px] shadow-xl transition-all duration-200 ${selected
+                        ? 'border-primary bg-primary/10 scale-105 ring-4 ring-primary/20'
+                        : `bg-white dark:bg-zinc-800 hover:border-primary/50 ${borderClass}`
+                        }`}>
+                        <Icon className={`w-8 h-8 transition-colors ${selected ? 'text-primary' : `${config.color} group-hover:text-primary`
+                            }`} />
+                    </div>
+
+                    <div className="absolute -bottom-8 flex flex-col items-center pointer-events-none text-center">
+                        <span className="text-[13px] font-bold text-foreground leading-tight tracking-tight">
+                            {data.title}
+                        </span>
+                    </div>
+
+                    <Handle type="source" position={Position.Right} className="!w-3 !h-3 bg-primary border-2 border-background z-20" />
+                </div>
+
+                <NoEditar id={id} data={data} isOpen={isOpen} setIsOpen={setIsOpen} />
+            </>
+        );
+    }
+
+    const conversionRate = data.views > 0 ? ((data.conversions / data.views) * 100).toFixed(1) : '0.0';
+
     return (
         <>
             <div
@@ -35,7 +84,6 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                     }`}
                 onDoubleClick={() => setIsOpen(true)}
                 style={{
-                    //translateZ(0) evita serrilhado no zoom 
                     backfaceVisibility: 'hidden',
                     WebkitFontSmoothing: 'subpixel-antialiased',
                     transform: 'translateZ(0)'
@@ -53,9 +101,12 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-sm"
-                        onClick={() => setIsOpen(true)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsOpen(true);
+                        }}
                     >
-                        <Settings2 className="w-3 h-3" />
+                        <Settings2 className="w-3 h-3 text-foreground" />
                     </Button>
                 </div>
 
@@ -69,14 +120,7 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                             {config.label}
                         </div>
 
-                        <CardTitle
-                            className="text-[16px] font-bold text-foreground pr-6 tracking-tight whitespace-normal break-words leading-tight"
-                            style={{
-                                textRendering: 'optimizeLegibility',
-                                WebkitFontSmoothing: 'subpixel-antialiased',
-                                letterSpacing: '-0.01em'
-                            }}
-                        >
+                        <CardTitle className="text-[16px] font-bold text-foreground pr-6 tracking-tight whitespace-normal break-words leading-tight">
                             {data.title}
                         </CardTitle>
                     </CardHeader>

@@ -4,4 +4,5 @@ export interface FunnelNodeData {
     views: number;
     conversions: number;
     category?: string;
+    formatoNode?: 'etapa' | 'origem';
 }

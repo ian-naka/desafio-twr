@@ -1,5 +1,5 @@
 //painel lateral - lista etapas do funil e controla configurações visuais 
-import { Target, X, LayoutList, Sun, Moon, Activity } from 'lucide-react';
+import { Target, X, LayoutList, Sun, Moon, Activity, Circle, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from "@/components/ui/switch";
 import type { Node } from '@xyflow/react';
@@ -22,6 +22,10 @@ export default function FunilSidebar({
     isMenuOpen, setIsMenuOpen, nodes, setNodes, showGrid, setShowGrid, theme, setTheme, animateFlow, setAnimateFlow
 }: FunilSidebarProps) {
     const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    //cálculos para o header da lista
+    const origensCount = nodes.filter(n => (n.data as any).formatoNode === 'origem').length;
+    const etapasCount = nodes.length - origensCount;
 
     //marca o no clicado como selecionado e desmarca todos os outros
     const handleSelectFromSidebar = (nodeId: string) => {
@@ -47,27 +51,44 @@ export default function FunilSidebar({
 
             <div className="p-6 flex flex-col gap-8 flex-1 overflow-hidden">
                 <div className="flex-1 overflow-hidden flex flex-col gap-3">
-                    <span className="text-xs uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2 font-medium leading-none">
-                        <LayoutList className="w-4 h-4" />
-                        Etapas ({nodes.length})
-                    </span>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-xs uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2 font-medium leading-none">
+                            <LayoutList className="w-4 h-4" />
+                            Estrutura do Fluxo
+                        </span>
+                        <div className="flex gap-3 mt-1">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">{origensCount} Origens</span>
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase">{etapasCount} Etapas</span>
+                        </div>
+                    </div>
+
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="grid grid-cols-1 gap-2">
                             {nodes.map((node) => {
                                 const nodeData = node.data as unknown as FunnelNodeData;
+                                const isOrigem = nodeData.formatoNode === 'origem';
+
                                 return (
                                     <div
                                         key={node.id}
                                         onClick={() => handleSelectFromSidebar(node.id)}
                                         className={`p-3 rounded-md border flex items-center justify-between group hover:border-primary transition-colors cursor-pointer ${node.selected ? 'bg-primary/10 border-primary' : 'bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800/40 border-border'}`}
                                     >
-                                        <div className="flex flex-col truncate pr-2">
-                                            <span className="text-sm font-bold truncate">{nodeData.title}</span>
-                                            <span className="text-[10px] text-muted-foreground">ID: {node.id.split('-')[1] || 'init'}</span>
+                                        <div className="flex items-center gap-3 truncate pr-2">
+                                            <div className={`p-1.5 rounded ${isOrigem ? 'bg-amber-500/10 text-amber-600' : 'bg-primary/10 text-primary'}`}>
+                                                {isOrigem ? <Circle className="w-3 h-3 fill-current" /> : <Square className="w-3 h-3 fill-current" />}
+                                            </div>
+
+                                            <div className="flex flex-col truncate">
+                                                <span className="text-sm font-bold truncate leading-tight">{nodeData.title}</span>
+                                                <span className="text-[10px] text-muted-foreground">
+                                                    {isOrigem ? 'Origem de Tráfego' : 'Etapa do Funil'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <Button
                                             variant="ghost"
-                                            className="h-auto py-1 px-2 rounded text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/10 dark:hover:text-primary transition-colors"
+                                            className="h-auto py-1 px-2 rounded text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:bg-primary/10 hover:text-primary transition-colors shrink-0"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 window.dispatchEvent(new CustomEvent('openEditNode', { detail: node.id }));
@@ -83,7 +104,7 @@ export default function FunilSidebar({
                 </div>
 
                 <div className="pt-6 border-t border-border mt-auto mb-4 space-y-4">
-                    <span className="text-xs uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2 font-medium leading-none mb-4">Configurações</span>
+                    <span className="text-xs uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-2 font-medium leading-none mb-4">Configurações globais</span>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-zinc-200 dark:bg-zinc-800/40">
                             <div className="flex flex-col gap-0.5">

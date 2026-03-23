@@ -31,8 +31,9 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
     const [editConversions, setEditConversions] = useState(data.conversions.toString());
     const [editCategory, setEditCategory] = useState(data.category || 'default');
 
-    //reseta os campos sempre que o editar abre pra refletir dados atualizados do nó
-    //setTimeout(0) garante que o react processe o open antes de setar os valores
+    //identifica se o nó é do tipo origem
+    const isOrigem = data.formatoNode === 'origem';
+
     useEffect(() => {
         if (isOpen) {
             setTimeout(() => {
@@ -44,14 +45,12 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
         }
     }, [isOpen, data]);
 
-    //bloqueia caracteres que o input type=number aceita mas não fazem sentido
     const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
             e.preventDefault();
         }
     };
 
-    //limita a 8 dígitos pra manter os números dentro do range visual do card
     const handleViewsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
         if (newValue.length <= 8) {
@@ -68,31 +67,24 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
 
     const handleSave = () => {
         const tituloLimpo = editTitle.trim();
-        //Math.abs, se o usuário colou um negativo de alguma forma, normaliza
         const acessosSeguros = Math.abs(Number(editViews)) || 0;
         const conversoesSeguras = Math.abs(Number(editConversions)) || 0;
-        const viewsNum = Number(editViews);
-        const conversionsNum = Number(editConversions);
 
         if (!tituloLimpo) {
-            toast.error("O título da etapa não pode estar vazio.");
+            toast.error("O título não pode estar vazio.");
             return;
         }
 
-        if (viewsNum < 0 || conversionsNum < 0) {
-            toast.error("Os valores não podem ser negativos.");
-            return;
-        }
-
-        //conversões nunca podem superar acessos 
-        if (conversionsNum > viewsNum) {
-            toast.error("As conversões não podem ser maiores que os acessos!");
-            return;
-        }
-
-        if (viewsNum > 99999999) {
-            toast.error("O limite máximo de acessos é 99 milhões.");
-            return;
+        //validações de números apenas se nao for origem
+        if (!isOrigem) {
+            if (acessosSeguros < 0 || conversoesSeguras < 0) {
+                toast.error("Os valores não podem ser negativos.");
+                return;
+            }
+            if (conversoesSeguras > acessosSeguros) {
+                toast.error("As conversões não podem ser maiores que os acessos!");
+                return;
+            }
         }
 
         setNodes((nds) =>
@@ -103,8 +95,8 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
                         data: {
                             ...node.data,
                             title: tituloLimpo,
-                            views: acessosSeguros,
-                            conversions: conversoesSeguras,
+                            views: isOrigem ? 0 : acessosSeguros,
+                            conversions: isOrigem ? 0 : conversoesSeguras,
                             category: editCategory
                         },
                     };
@@ -113,29 +105,24 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
             })
         );
         setIsOpen(false);
-        toast.success("Etapa atualizada com sucesso!");
+        toast.success(`${isOrigem ? 'Origem' : 'Etapa'} atualizada!`);
     };
 
     const handleDelete = () => {
-        //dispara evento global pra avisar o FunilGrid que a exclusão foi manual
-        //sem isso, mostraria notificacao duplicada de conexão removida
         window.dispatchEvent(new CustomEvent('manualNodeDelete'));
-
         setNodes((nds) => nds.filter((node) => node.id !== id));
         setIsOpen(false);
-
-        toast.info("Etapa excluída", {
-            description: `A etapa "${data.title}" foi removida do funil.`
-        });
+        toast.info("Removido com sucesso.");
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="sm:max-w-[425px] overflow-hidden">
                 <DialogHeader>
-                    <DialogTitle>Editar Etapa</DialogTitle>
+                    <DialogTitle>Editar {isOrigem ? 'Origem' : 'Etapa'}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="category" className="text-right">Categoria</Label>
                         <select
@@ -144,7 +131,7 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
                             onChange={(e) => setEditCategory(e.target.value)}
                             className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
-                            <option value="default">Etapa Genérica</option>
+                            <option value="default">Genérica</option>
                             <option value="anuncio">Anúncio</option>
                             <option value="landing-page">Landing Page</option>
                             <option value="formulario">Formulário</option>
@@ -157,31 +144,35 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
                         <Label htmlFor="title" className="text-right">Título</Label>
                         <Input id="title" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="col-span-3" maxLength={50} />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="views" className="text-right">Acessos</Label>
-                        <Input
-                            id="views"
-                            type="number"
-                            min="0"
-                            value={editViews}
-                            onChange={handleViewsChange}
-                            onKeyDown={preventInvalidChars}
-                            className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="conversions" className="text-right">Conversões</Label>
-                        <Input
-                            id="conversions"
-                            type="number"
-                            min="0"
-                            value={editConversions}
-                            onChange={handleConversionsChange}
-                            onKeyDown={preventInvalidChars}
-                            className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                    </div>
+
+                    {!isOrigem && (
+                        <>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="views" className="text-right">Acessos</Label>
+                                <Input
+                                    id="views"
+                                    type="number"
+                                    value={editViews}
+                                    onChange={handleViewsChange}
+                                    onKeyDown={preventInvalidChars}
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="conversions" className="text-right">Conversões</Label>
+                                <Input
+                                    id="conversions"
+                                    type="number"
+                                    value={editConversions}
+                                    onChange={handleConversionsChange}
+                                    onKeyDown={preventInvalidChars}
+                                    className="col-span-3"
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
+
                 <DialogFooter className="flex flex-row items-center !justify-between sm:!justify-between sm:space-x-0 mt-6 -mx-6 -mb-6 px-6 pt-4 pb-6 bg-zinc-100 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-800 rounded-b-lg">
                     <Button variant="destructive" onClick={handleDelete} className="flex gap-2">
                         <Trash2 className="w-4 h-4" /> Excluir
