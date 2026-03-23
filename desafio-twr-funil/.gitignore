@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 # Temporários e Locais
-um.txt
 .env
 coverage/
 package-lock.json
