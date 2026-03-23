@@ -38,7 +38,6 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                     style={{ backfaceVisibility: 'hidden' }}
                     onDoubleClick={() => setIsOpen(true)}
                 >
-                    {/* Botão Editar (Aparece no Hover) */}
                     <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10 -mr-2 -mt-2">
                         <Button
                             variant="ghost"
