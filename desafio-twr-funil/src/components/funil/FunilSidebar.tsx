@@ -21,6 +21,8 @@ interface FunilSidebarProps {
 export default function FunilSidebar({
     isMenuOpen, setIsMenuOpen, nodes, setNodes, showGrid, setShowGrid, theme, setTheme, animateFlow, setAnimateFlow
 }: FunilSidebarProps) {
+    const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
     //marca o no clicado como selecionado e desmarca todos os outros
     const handleSelectFromSidebar = (nodeId: string) => {
         setNodes((nds) =>
@@ -92,10 +94,10 @@ export default function FunilSidebar({
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-zinc-200 dark:bg-zinc-800/40">
                             <div className="flex flex-col gap-0.5">
-                                <span className="text-sm font-semibold flex items-center gap-2">Tema Escuro {theme === 'dark' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}</span>
+                                <span className="text-sm font-semibold flex items-center gap-2">Tema Escuro {isDarkMode ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}</span>
                                 <span className="text-[10px] text-muted-foreground">Alternar cores da interface</span>
                             </div>
-                            <Switch checked={theme === 'dark'} onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent" />
+                            <Switch checked={isDarkMode} onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} className="data-[state=unchecked]:!bg-zinc-400 dark:data-[state=unchecked]:!bg-zinc-700 border border-zinc-400 dark:border-transparent" />
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-zinc-200 dark:bg-zinc-800/40">
                             <div className="flex flex-col gap-0.5">
