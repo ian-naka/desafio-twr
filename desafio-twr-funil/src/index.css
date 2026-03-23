@@ -231,3 +231,24 @@
   stroke: transparent !important;
   background: transparent !important;
 }
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 6 6 !important;
+  animation: flowAnimation 1s linear infinite !important;
+}
+
+/* Remove a animação se estiver desligado no botão */
+.react-flow__edge:not(.animated) .react-flow__edge-path {
+  stroke-dasharray: none !important;
+  animation: none !important;
+}
+
+@keyframes flowAnimation {
+  from {
+    stroke-dashoffset: 24;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}

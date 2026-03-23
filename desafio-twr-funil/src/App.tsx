@@ -7,7 +7,7 @@ export default function App() {
     <ThemeProvider defaultTheme="system" storageKey="twr-theme">
       <main className="w-screen h-screen bg-background text-foreground">
         <FunilGrid />
-        <Toaster position="top-left" />
+        <Toaster position="top-left" closeButton />
       </main>
     </ThemeProvider>
   );

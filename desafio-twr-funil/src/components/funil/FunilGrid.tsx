@@ -3,6 +3,7 @@ import {
     ReactFlow,
     Background,
     Controls,
+    ControlButton,
     MiniMap,
     useNodesState,
     useEdgesState,
@@ -21,7 +22,7 @@ import FunilNode from './FunilNode';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-import { Activity, Plus, Menu, LayoutList, Target, X, Sun, Moon } from 'lucide-react';
+import { Activity, Plus, Menu, LayoutList, Target, X, Sun, Moon, Maximize } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from '@/components/theme-provider';
 
@@ -256,21 +257,30 @@ export default function FunilGrid() {
         );
     };
 
-    const styledEdges: Edge[] = edges.map(edge => ({
-        ...edge,
-        animated: animateFlow,
-        markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 20,
-            height: 20,
-            color: theme === 'dark' ? '#fafafa' : '#18181b',
-        },
-        style: {
-            ...edge.style,
-            strokeWidth: 2,
-            stroke: theme === 'dark' ? '#fafafa' : '#18181b',
+    const styledEdges: Edge[] = edges.map(edge => {
+        const isSelected = edge.selected;
+        let color = theme === 'dark' ? '#fafafa' : '#18181b';
+
+        if (isSelected) {
+            color = theme === 'dark' ? '#3b82f6' : '#2563eb';
         }
-    }));
+
+        return {
+            ...edge,
+            animated: animateFlow,
+            markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: isSelected ? 10 : 20,
+                height: isSelected ? 10 : 20,
+                color: color,
+            },
+            style: {
+                ...edge.style,
+                strokeWidth: isSelected ? 4 : 2,
+                stroke: color,
+            }
+        };
+    });
 
     return (
         <div className="relative flex w-screen h-screen overflow-hidden bg-background">
@@ -318,7 +328,11 @@ export default function FunilGrid() {
                         <Background variant={BackgroundVariant.Dots} gap={24} size={2} color={theme === 'dark' ? '#3f3f46' : '#71717a'} />
                     )}
 
-                    <Controls className="bg-background border-border shadow-sm m-4 scale-[1.2] origin-bottom-left fill-foreground" />
+                    <Controls showFitView={false} className="bg-background border-border shadow-sm m-4 scale-[1.6] origin-bottom-left fill-foreground border-b-0 [&>button]:border-b [&>button]:border-border">
+                        <ControlButton onClick={() => rfInstance?.fitView({ duration: 800, padding: 0.2 })} title="Centralizar Funil">
+                            <Maximize className="w-3.5 h-3.5" />
+                        </ControlButton>
+                    </Controls>
 
                     <MiniMap
                         className="hidden sm:block rounded-lg shadow-xl m-4 overflow-hidden !w-[200px] !h-[150px]"
