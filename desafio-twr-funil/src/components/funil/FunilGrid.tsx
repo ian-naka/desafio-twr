@@ -48,6 +48,7 @@ export default function FunilGrid() {
     const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
     const [animateFlow, setAnimateFlow] = useState<boolean>(getInitialAnimateState());
     const { theme, setTheme } = useTheme();
+    const isDarkMode = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
     //flag pra diferenciar exclusão de nó de exclusão manual de aresta
     //sem isso deletar um no dispara "conexão removida" pra cada aresta associada
@@ -199,11 +200,11 @@ export default function FunilGrid() {
     //ao selecionar, a linha dobra de espessura mas a seta reduz pela metade.
     const styledEdges: Edge[] = edges.map(edge => {
         const isSelected = edge.selected;
-        let color = theme === 'dark' ? '#fafafa' : '#18181b';
+        let color = isDarkMode ? '#fafafa' : '#18181b';
 
         //azul calibrado por tema
         if (isSelected) {
-            color = theme === 'dark' ? '#3b82f6' : '#2563eb';
+            color = isDarkMode ? '#3b82f6' : '#2563eb';
         }
 
         return {
@@ -253,7 +254,7 @@ export default function FunilGrid() {
                     onEdgesDelete={onEdgesDelete}
                     nodeTypes={nodeTypes}
                     onPaneClick={() => setIsMenuOpen(false)}
-                    colorMode={theme === 'dark' ? 'dark' : 'light'}
+                    colorMode={isDarkMode ? 'dark' : 'light'}
                     fitView
                     onInit={setRfInstance}
                     defaultEdgeOptions={{
@@ -263,11 +264,11 @@ export default function FunilGrid() {
                             type: MarkerType.ArrowClosed,
                             width: 20,
                             height: 20,
-                            color: theme === 'dark' ? '#fafafa' : '#18181b',
+                            color: isDarkMode ? '#fafafa' : '#18181b',
                         },
                         style: {
                             strokeWidth: 2,
-                            stroke: theme === 'dark' ? '#fafafa' : '#18181b',
+                            stroke: isDarkMode ? '#fafafa' : '#18181b',
                         }
                     }}
                     translateExtent={MAP_LIMIT}
@@ -291,7 +292,7 @@ export default function FunilGrid() {
                             variant={BackgroundVariant.Dots}
                             gap={24}
                             size={2}
-                            color={theme === 'dark' ? '#58585dff' : '#71717a'}
+                            color={isDarkMode ? '#58585dff' : '#71717a'}
                         />
                     )}
 
@@ -303,12 +304,12 @@ export default function FunilGrid() {
 
                     <MiniMap
                         className="hidden sm:block rounded-lg shadow-xl m-4 overflow-hidden !w-[200px] !h-[150px]"
-                        maskColor={theme === 'dark' ? '#fafafacc' : '#18181be6'}
+                        maskColor={isDarkMode ? '#fafafacc' : '#18181be6'}
                         maskStrokeWidth={0}
-                        nodeColor={theme === 'dark' ? '#f4f4f5' : '#3f3f46'}
+                        nodeColor={isDarkMode ? '#f4f4f5' : '#3f3f46'}
                         nodeStrokeWidth={0}
                         style={{
-                            backgroundColor: theme === 'dark' ? '#161618ff' : '#ffffff',
+                            backgroundColor: isDarkMode ? '#161618ff' : '#ffffff',
                         }}
                     />
 
@@ -322,7 +323,7 @@ export default function FunilGrid() {
                             size="icon"
                             className="h-16 w-16 rounded-full bg-primary text-primary-foreground shadow-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer border-0"
                             style={{
-                                backgroundColor: theme === 'dark' ? '#fafafae6' : '#18181be6',
+                                backgroundColor: isDarkMode ? '#fafafae6' : '#18181be6',
                             }}
                         >
                             <Plus className="w-8 h-8" />
