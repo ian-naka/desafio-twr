@@ -272,6 +272,15 @@ export default function FunilGrid() {
                         maskColor={isDarkMode ? '#fafafacc' : '#18181be6'}
                         nodeColor={isDarkMode ? '#f4f4f5' : '#3f3f46'}
                         style={{ backgroundColor: isDarkMode ? '#161618ff' : '#ffffff' }}
+                        nodeComponent={({ x, y, width, height, color, id }) => {
+                            const node = nodes.find(n => n.id === id);
+                            const isOrigem = (node?.data as any)?.formatoNode === 'origem';
+                            if (isOrigem) {
+                                const r = Math.min(width, height) / 2;
+                                return <circle cx={x + width / 2} cy={y + height / 2} r={r} fill={color} />;
+                            }
+                            return <rect x={x} y={y} width={width} height={height} fill={color} rx={2} />;
+                        }}
                     />
 
                     <Panel position="bottom-right" className="z-50" style={{ marginRight: '84px', marginBottom: '180px' }}>

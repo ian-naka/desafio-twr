@@ -59,8 +59,8 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                             }`} />
                     </div>
 
-                    <div className="absolute -bottom-8 flex flex-col items-center pointer-events-none text-center">
-                        <span className="text-[13px] font-bold text-foreground leading-tight tracking-tight">
+                    <div className="absolute -bottom-9 pointer-events-none text-center whitespace-nowrap">
+                        <span className="text-[15px] font-bold text-foreground leading-tight tracking-tight">
                             {data.title}
                         </span>
                     </div>

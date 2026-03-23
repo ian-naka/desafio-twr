@@ -9,6 +9,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -112,7 +113,14 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
         window.dispatchEvent(new CustomEvent('manualNodeDelete'));
         setNodes((nds) => nds.filter((node) => node.id !== id));
         setIsOpen(false);
-        toast.info("Removido com sucesso.");
+
+        toast.info("Etapa excluída", {
+            description: (
+                <span className="text-zinc-600 dark:text-zinc-400 font-medium">
+                    A etapa "{data.title}" foi removida do funil.
+                </span>
+            )
+        });
     };
 
     return (
@@ -120,6 +128,9 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
             <DialogContent className="sm:max-w-[425px] overflow-hidden">
                 <DialogHeader>
                     <DialogTitle>Editar {isOrigem ? 'Origem' : 'Etapa'}</DialogTitle>
+                    <DialogDescription>
+                        Altere as configurações e identificação deste nó do funil.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
 
