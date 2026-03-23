@@ -252,3 +252,8 @@
     stroke-dashoffset: 0;
   }
 }
+
+.react-flow__edge-path {
+  stroke-dasharray: 6 6 !important;
+  animation: flowAnimation 1s linear infinite !important;
+}

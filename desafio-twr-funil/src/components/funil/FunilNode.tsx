@@ -56,11 +56,11 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                     </Button>
                 </div>
 
-                <Card className={`bg-white dark:bg-zinc-900 relative overflow-hidden transition-all duration-200 ${selected ? 'border-zinc-500 ring-2 ring-zinc-500 ring-offset-2 dark:border-primary shadow-xl' : 'border-zinc-200 dark:border-zinc-800 shadow-lg'
+                <Card className={`bg-white dark:bg-zinc-800 relative overflow-hidden transition-all duration-200 ${selected ? 'border-zinc-500 ring-2 ring-zinc-500 ring-offset-2 dark:border-primary shadow-xl' : 'border-zinc-200 dark:border-zinc-700 shadow-lg'
                     }`}>
                     <div className="absolute top-0 left-0 w-full h-1 bg-zinc-500 dark:bg-primary/70" />
 
-                    <CardHeader className="p-4 pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50 pt-5">
+                    <CardHeader className="p-4 pb-3 border-b-2 border-zinc-250/50 dark:border-zinc-700/50 pt-5">
                         <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider w-fit mb-2.5 ${config.bg} ${config.color}`}>
                             <Icon className="w-3 h-3" />
                             {config.label}
@@ -95,7 +95,7 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                                 <span>Taxa de Conversão</span>
                                 <span className="text-primary">{conversionRate}%</span>
                             </div>
-                            <div className="w-full bg-zinc-300 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-zinc-300 dark:bg-zinc-900 rounded-full h-1.5 overflow-hidden">
                                 <div
                                     className="bg-primary h-1.5 rounded-full transition-all duration-500"
                                     style={{ width: `${Math.min(100, Number(conversionRate))}%` }}

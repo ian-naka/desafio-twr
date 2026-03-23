@@ -217,7 +217,7 @@ export default function FunilGrid() {
                 }
             `}} />
 
-            <div className={`relative flex-1 h-full transition-all duration-300 ease-in-out bg-zinc-200 dark:bg-background overflow-hidden ${isMenuOpen ? 'sm:mr-[350px]' : 'mr-0'}`}>
+            <div className={`relative flex-1 h-full transition-all duration-300 ease-in-out bg-zinc-200 dark:bg-zinc-950 overflow-hidden ${isMenuOpen ? 'sm:mr-[350px]' : 'mr-0'}`}>
                 <ReactFlow
                     nodes={nodes}
                     edges={styledEdges}
@@ -236,7 +236,7 @@ export default function FunilGrid() {
                     fitView
                     onInit={setRfInstance}
                     defaultEdgeOptions={{
-                        interactionWidth: 20,
+                        interactionWidth: 40,
                         animated: animateFlow,
                         markerEnd: {
                             type: MarkerType.ArrowClosed,
@@ -270,7 +270,7 @@ export default function FunilGrid() {
                             variant={BackgroundVariant.Dots}
                             gap={24}
                             size={2}
-                            color={theme === 'dark' ? '#3f3f46' : '#71717a'}
+                            color={theme === 'dark' ? '#58585dff' : '#71717a'}
                         />
                     )}
 
