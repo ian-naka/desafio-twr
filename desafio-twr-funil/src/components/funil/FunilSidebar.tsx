@@ -2,7 +2,7 @@ import { Target, X, LayoutList, Sun, Moon, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from "@/components/ui/switch";
 import type { Node } from '@xyflow/react';
-import type { FunnelNodeData } from './Interfaces';
+import type { FunnelNodeData } from '../types/Interfaces';
 
 interface FunilSidebarProps {
     isMenuOpen: boolean;

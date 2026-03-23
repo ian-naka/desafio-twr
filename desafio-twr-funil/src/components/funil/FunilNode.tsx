@@ -4,8 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Users, TrendingUp, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-import type { FunnelNodeData } from './Interfaces';
-import { categoryConfig } from './Constantes';
+import type { FunnelNodeData } from '../types/Interfaces';
+import { categoryConfig } from '../constants/Constantes';
 import NoEditar from './NoEditar';
 
 export default function FunilNode({ id, data, selected }: { id: string; data: FunnelNodeData; selected?: boolean }) {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import { toast } from 'sonner';
-import { getInitialNodes, getInitialEdges } from './Constantes';
+import { getInitialNodes, getInitialEdges } from '../constants/Constantes';
 
 export function useFunilHistorico(
     nodes: Node[],

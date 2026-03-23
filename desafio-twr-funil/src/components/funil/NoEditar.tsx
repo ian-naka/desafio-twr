@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { FunnelNodeData } from './Interfaces';
+import type { FunnelNodeData } from '../types/Interfaces';
 
 interface NoEditarProps {
     id: string;

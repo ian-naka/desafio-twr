@@ -31,8 +31,8 @@ import {
     getInitialGridState,
     getInitialAnimateState,
     MAP_LIMIT
-} from './Constantes';
-import { useFunilHistorico } from './FunilHistorico';
+} from '../constants/Constantes';
+import { useFunilHistorico } from '../hooks/FunilHistorico';
 import FunilSidebar from './FunilSidebar';
 
 const nodeTypes = {
