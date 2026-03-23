@@ -1,3 +1,4 @@
+//painel lateral - lista etapas do funil e controla configurações visuais 
 import { Target, X, LayoutList, Sun, Moon, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from "@/components/ui/switch";
@@ -20,6 +21,7 @@ interface FunilSidebarProps {
 export default function FunilSidebar({
     isMenuOpen, setIsMenuOpen, nodes, setNodes, showGrid, setShowGrid, theme, setTheme, animateFlow, setAnimateFlow
 }: FunilSidebarProps) {
+    //marca o no clicado como selecionado e desmarca todos os outros
     const handleSelectFromSidebar = (nodeId: string) => {
         setNodes((nds) =>
             nds.map((n) => ({

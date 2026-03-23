@@ -1,3 +1,4 @@
+//renderiza métricas, categoria e abre editar nó
 import { useState, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -13,6 +14,7 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
 
     const conversionRate = data.views > 0 ? ((data.conversions / data.views) * 100).toFixed(1) : '0.0';
 
+    //escuta evento global disparado pelo botão "editar" da sidebar 
     useEffect(() => {
         const handleOpenEdit = (e: Event) => {
             const customEvent = e as CustomEvent;
@@ -33,6 +35,7 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                     }`}
                 onDoubleClick={() => setIsOpen(true)}
                 style={{
+                    //translateZ(0) evita serrilhado no zoom 
                     backfaceVisibility: 'hidden',
                     WebkitFontSmoothing: 'subpixel-antialiased',
                     transform: 'translateZ(0)'
@@ -56,11 +59,11 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                     </Button>
                 </div>
 
-                <Card className={`bg-white dark:bg-zinc-800 relative overflow-hidden transition-all duration-200 ${selected ? 'border-zinc-500 ring-2 ring-zinc-500 ring-offset-2 dark:border-primary shadow-xl' : 'border-zinc-200 dark:border-zinc-700 shadow-lg'
+                <Card className={`bg-white dark:bg-zinc-800 relative overflow-hidden transition-all duration-200 ${selected ? 'border-zinc-500 ring-2 ring-zinc-500 ring-offset-2 dark:border-primary shadow-xl' : 'border-zinc-200 dark:border-zinc-800 shadow-lg'
                     }`}>
                     <div className="absolute top-0 left-0 w-full h-1 bg-zinc-500 dark:bg-primary/70" />
 
-                    <CardHeader className="p-4 pb-3 border-b-2 border-zinc-250/50 dark:border-zinc-700/50 pt-5">
+                    <CardHeader className="p-4 pb-3 border-b border-zinc-200/50 dark:border-zinc-800/50 pt-5">
                         <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider w-fit mb-2.5 ${config.bg} ${config.color}`}>
                             <Icon className="w-3 h-3" />
                             {config.label}

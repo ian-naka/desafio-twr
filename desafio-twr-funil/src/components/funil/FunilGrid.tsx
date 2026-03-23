@@ -1,3 +1,4 @@
+//monta o react flow, gerencia conexões e persiste estado
 import { useCallback, useEffect, useState, useRef } from 'react';
 import {
     ReactFlow,
@@ -48,10 +49,13 @@ export default function FunilGrid() {
     const [animateFlow, setAnimateFlow] = useState<boolean>(getInitialAnimateState());
     const { theme, setTheme } = useTheme();
 
+    //flag pra diferenciar exclusão de nó de exclusão manual de aresta
+    //sem isso deletar um no dispara "conexão removida" pra cada aresta associada
     const isNodeDeletionRef = useRef(false);
 
     useFunilHistorico(nodes, edges, setNodes, setEdges);
 
+    //persiste tudo no localStorage a cada mudança de estado
     useEffect(() => {
         localStorage.setItem('twr-nodes', JSON.stringify(nodes));
         localStorage.setItem('twr-edges', JSON.stringify(edges));
@@ -59,6 +63,7 @@ export default function FunilGrid() {
         localStorage.setItem('twr-animate', JSON.stringify(animateFlow));
     }, [nodes, edges, showGrid, animateFlow]);
 
+    //escuta o evento customizado do NoEditar 
     useEffect(() => {
         const handleManualDelete = () => {
             isNodeDeletionRef.current = true;
@@ -87,6 +92,7 @@ export default function FunilGrid() {
         }, 100);
     }, []);
 
+    //so mostra notificacao de aresta se nao foi consequencia de deletar um nó
     const onEdgesDelete = useCallback(() => {
         if (isNodeDeletionRef.current) return;
         toast("Conexão removida");
@@ -94,6 +100,7 @@ export default function FunilGrid() {
 
     const edgeReconnectSuccessful = useRef(true);
 
+    //impede conexões duplicatas entre o mesmo par de nós
     const onConnect = useCallback(
         (params: Connection | Edge) => {
             const edgeExists = edges.some(
@@ -115,6 +122,7 @@ export default function FunilGrid() {
         edgeReconnectSuccessful.current = false;
     }, []);
 
+    //limpa seleção ao iniciar conexão pra evitar conflito visual com as arestas destacadas
     const onConnectStart = useCallback(() => {
         setEdges((eds) => eds.map((e) => ({ ...e, selected: false })));
         setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
@@ -124,6 +132,7 @@ export default function FunilGrid() {
         (oldEdge: Edge, newConnection: Connection) => {
             edgeReconnectSuccessful.current = true;
 
+            //valida se o novo destino já tem uma conexão com a mesma origem
             const edgeExists = edges.some(
                 (e) => e.source === newConnection.source &&
                     e.target === newConnection.target &&
@@ -132,7 +141,7 @@ export default function FunilGrid() {
 
             if (edgeExists) {
                 toast.warning("Estas etapas já estão conectadas!");
-                return; // Aborta a função: a linha volta para onde estava
+                return;
             }
 
             if (oldEdge.source !== newConnection.source || oldEdge.target !== newConnection.target) {
@@ -143,6 +152,7 @@ export default function FunilGrid() {
         [edges, setEdges]
     );
 
+    //se o usuário soltou a aresta no vazio remove ela
     const onReconnectEnd = useCallback(
         (_: any, edge: Edge) => {
             if (!edgeReconnectSuccessful.current) {
@@ -161,6 +171,7 @@ export default function FunilGrid() {
 
         let position = { x: 100, y: 100 };
 
+        //converte o centro da tela pra coordenadas do flow pra criar o nó onde o usuário vê
         if (rfInstance) {
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
@@ -170,6 +181,7 @@ export default function FunilGrid() {
                 y: centerY,
             });
 
+            //evita empilhamento exato quando cria vários nós seguidos
             position.x += (Math.random() - 0.5) * 60;
             position.y += (Math.random() - 0.5) * 60;
         }
@@ -184,10 +196,12 @@ export default function FunilGrid() {
         toast.success("Nova etapa criada!");
     }, [setNodes, rfInstance]);
 
+    //ao selecionar, a linha dobra de espessura mas a seta reduz pela metade.
     const styledEdges: Edge[] = edges.map(edge => {
         const isSelected = edge.selected;
         let color = theme === 'dark' ? '#fafafa' : '#18181b';
 
+        //azul calibrado por tema
         if (isSelected) {
             color = theme === 'dark' ? '#3b82f6' : '#2563eb';
         }

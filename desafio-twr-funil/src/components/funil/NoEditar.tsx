@@ -1,3 +1,4 @@
+//formulário pra alterar título, métricas e categoria de um nó do funil
 import { useState, useEffect } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { Trash2 } from 'lucide-react';
@@ -30,6 +31,8 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
     const [editConversions, setEditConversions] = useState(data.conversions.toString());
     const [editCategory, setEditCategory] = useState(data.category || 'default');
 
+    //reseta os campos sempre que o editar abre pra refletir dados atualizados do nó
+    //setTimeout(0) garante que o react processe o open antes de setar os valores
     useEffect(() => {
         if (isOpen) {
             setTimeout(() => {
@@ -41,12 +44,14 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
         }
     }, [isOpen, data]);
 
+    //bloqueia caracteres que o input type=number aceita mas não fazem sentido
     const preventInvalidChars = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
             e.preventDefault();
         }
     };
 
+    //limita a 8 dígitos pra manter os números dentro do range visual do card
     const handleViewsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
         if (newValue.length <= 8) {
@@ -63,6 +68,7 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
 
     const handleSave = () => {
         const tituloLimpo = editTitle.trim();
+        //Math.abs, se o usuário colou um negativo de alguma forma, normaliza
         const acessosSeguros = Math.abs(Number(editViews)) || 0;
         const conversoesSeguras = Math.abs(Number(editConversions)) || 0;
         const viewsNum = Number(editViews);
@@ -78,6 +84,7 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
             return;
         }
 
+        //conversões nunca podem superar acessos 
         if (conversionsNum > viewsNum) {
             toast.error("As conversões não podem ser maiores que os acessos!");
             return;
@@ -110,6 +117,8 @@ export default function NoEditar({ id, data, isOpen, setIsOpen }: NoEditarProps)
     };
 
     const handleDelete = () => {
+        //dispara evento global pra avisar o FunilGrid que a exclusão foi manual
+        //sem isso, mostraria notificacao duplicada de conexão removida
         window.dispatchEvent(new CustomEvent('manualNodeDelete'));
 
         setNodes((nds) => nds.filter((node) => node.id !== id));
