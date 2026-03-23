@@ -29,7 +29,6 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
 
     if (isOrigem) {
         const borderClass = config.color.replace('text-', 'border-');
-        const conversionRate = data.views > 0 ? ((data.conversions / data.views) * 100).toFixed(1) : '0.0';
 
         return (
             <>
