@@ -10,6 +10,7 @@ import {
     reconnectEdge,
     addEdge,
     Panel,
+    useReactFlow,
     type Connection,
     type Edge,
     type Node,
@@ -115,6 +116,11 @@ export default function FunilGrid() {
         edgeReconnectSuccessful.current = false;
     }, []);
 
+    const onConnectStart = useCallback(() => {
+        setEdges((eds) => eds.map((e) => ({ ...e, selected: false })));
+        setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
+    }, [setEdges, setNodes]);
+
     const onReconnect = useCallback(
         (oldEdge: Edge, newConnection: Connection) => {
             edgeReconnectSuccessful.current = true;
@@ -189,6 +195,7 @@ export default function FunilGrid() {
 
         return {
             ...edge,
+            zIndex: isSelected ? 1000 : 0,
             animated: animateFlow,
             markerEnd: {
                 type: MarkerType.ArrowClosed,
@@ -224,6 +231,7 @@ export default function FunilGrid() {
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
+                    onConnectStart={onConnectStart}
                     onReconnect={onReconnect}
                     onReconnectStart={onReconnectStart}
                     onReconnectEnd={onReconnectEnd}
