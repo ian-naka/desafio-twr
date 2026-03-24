@@ -94,11 +94,11 @@ export default function FunilNode({ id, data, selected }: { id: string; data: Fu
                     className="!w-1.5 !h-10 !bg-primary !border-0 !rounded-sm !-left-[3px] z-20 hover:!w-2 hover:!h-12 transition-all shadow-sm cursor-default"
                 />
 
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <div className={`absolute top-2 right-2 transition-opacity z-10 ${selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-sm"
+                        className="h-6 w-6 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-sm hover:bg-white/90 dark:hover:bg-zinc-800/90"
                         onClick={(e) => {
                             e.stopPropagation();
                             setIsOpen(true);
